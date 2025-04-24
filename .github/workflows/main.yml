@@ -1,0 +1,79 @@
+name: Build Android Kernel
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Install dependencies required for Android kernel compilation
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            build-essential \
+            bc \
+            bison \
+            flex \
+            libssl-dev \
+            libncurses-dev \
+            libelf-dev \
+            gcc \
+            g++ \
+            make \
+            python3 \
+            python-is-python3 \
+            cpio \
+            kmod \
+            clang \
+            lld \
+            zip \
+            curl \
+            wget \
+            device-tree-compiler \
+            lz4 \
+            xz-utils \
+            zlib1g-dev \
+            libarchive-tools \
+            zstd
+
+      # Set up environment variables
+      - name: Setup Build Environment
+        run: |
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "CC=clang" >> $GITHUB_ENV
+
+      # Run the build_kernel.sh script
+      - name: Build Kernel
+        run: |
+          if [ -f ./build_kernel.sh ]; then
+            chmod +x ./build_kernel.sh
+            bash ./build_kernel.sh
+          else
+            echo "Error: build_kernel.sh not found in the repository root"
+            exit 1
+          fi
+
+      # Upload build artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-build
+          path: |
+            arch/arm64/boot/Image.gz
+            arch/arm64/boot/Image.gz-dtb
+            **/*.ko
+            *.zip
+          if-no-files-found: warn
