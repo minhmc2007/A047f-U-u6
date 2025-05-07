@@ -1,4 +1,3 @@
-#
 # (C) COPYRIGHT 2012 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the GNU General Public License version 2
@@ -7,8 +6,6 @@
 # A copy of the licence is included with the program, and can also be obtained from Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
-#
-
 
 menu "ARM GPU Configuration"
 
@@ -22,32 +19,31 @@ menuconfig MALI_DDK_VERSION
 	  this will generate a single module, called mali_kbase.
 
 choice
-	prompt "version Configuration"
+	prompt "Version Configuration"
 	depends on MALI_DDK_VERSION
-	default MALI_BIFROST_R32P1 if $(PLATFORM_VERSION) <= 12
-	default MALI_BIFROST_R38P1 if $(PLATFORM_VERSION) >= 13
+	default MALI_BIFROST_R38P1
 	help
-	  Select the gpu support version.
+	  Select the GPU support version.
 
 config MALI_BIFROST_R19P0
-	depends on MALI_DDK_VERSION
 	bool "Bifrost r19p0 driver"
+	depends on MALI_DDK_VERSION
 
 config MALI_BIFROST_R25P1
-	depends on MALI_DDK_VERSION
 	bool "Bifrost r25p1 driver"
+	depends on MALI_DDK_VERSION
 
 config MALI_BIFROST_R26P0
-	depends on MALI_DDK_VERSION
 	bool "Bifrost r26p0 driver"
+	depends on MALI_DDK_VERSION
 
 config MALI_BIFROST_R32P1
-	depends on MALI_DDK_VERSION
 	bool "Bifrost r32p1 driver"
+	depends on MALI_DDK_VERSION
 
 config MALI_BIFROST_R38P1
-	depends on MALI_DDK_VERSION
 	bool "Bifrost r38p1 driver"
+	depends on MALI_DDK_VERSION
 
 endchoice
 
