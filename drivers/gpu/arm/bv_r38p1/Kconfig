@@ -16,6 +16,7 @@
 # along with this program; if not, you can access it online at
 # http://www.gnu.org/licenses/gpl-2.0.html.
 #
+#
 
 menuconfig MALI_MIDGARD
 	tristate "Mali Midgard series support"
@@ -24,6 +25,8 @@ menuconfig MALI_MIDGARD
 	select PM_DEVFREQ
 	select DEVFREQ_THERMAL
 	select FW_LOADER
+	default m if SOC_EXYNOS2100
+	default y if SOC_EXYNOS9830
 	default y
 	help
 	  Enable this option to build support for a ARM Mali Midgard GPU.
@@ -34,6 +37,7 @@ menuconfig MALI_MIDGARD
 if MALI_MIDGARD
 
 config MALI_PLATFORM_NAME
+	depends on MALI_MIDGARD
 	string "Platform name"
 	default "exynos"
 	help
@@ -42,6 +46,7 @@ config MALI_PLATFORM_NAME
 	  exist.
 
 config MALI_REAL_HW
+	depends on MALI_MIDGARD
 	def_bool !MALI_NO_MALI
 
 menu "Platform specific options"
@@ -50,13 +55,17 @@ endmenu
 
 config MALI_CSF_SUPPORT
 	bool "Enable Mali CSF based GPU support"
+	depends on MALI_MIDGARD=m
 	default n
 	help
 	  Enables support for CSF based GPUs.
 
 config MALI_DEVFREQ
 	bool "Enable devfreq support for Mali"
+	depends on MALI_MIDGARD && PM_DEVFREQ
 	select DEVFREQ_GOV_SIMPLE_ONDEMAND
+	default n if SOC_EXYNOS2100
+	default n if SOC_EXYNOS9830
 	default n
 	help
 	  Support devfreq for Mali.
@@ -67,12 +76,14 @@ config MALI_DEVFREQ
 
 config MALI_MIDGARD_DVFS
 	bool "Enable legacy DVFS"
+	depends on MALI_MIDGARD && !MALI_DEVFREQ
 	default n
 	help
 	  Choose this option to enable legacy DVFS in the Mali Midgard DDK.
 
 config MALI_GATOR_SUPPORT
 	bool "Enable Streamline tracing support"
+	depends on MALI_MIDGARD
 	default y
 	help
 	  Enables kbase tracing used by the Arm Streamline Performance Analyzer.
@@ -80,6 +91,7 @@ config MALI_GATOR_SUPPORT
 
 config MALI_MIDGARD_ENABLE_TRACE
 	bool "Enable kbase tracing"
+	depends on MALI_MIDGARD
 	default y if MALI_DEBUG
 	default n
 	help
@@ -88,6 +100,7 @@ config MALI_MIDGARD_ENABLE_TRACE
 
 config MALI_DMA_FENCE
 	bool "Enable DMA_BUF fence support for Mali"
+	depends on MALI_MIDGARD
 	default n
 	help
 	  Support DMA_BUF fences for Mali.
@@ -97,6 +110,7 @@ config MALI_DMA_FENCE
 
 config MALI_ARBITER_SUPPORT
 	bool "Enable arbiter support for Mali"
+	depends on MALI_MIDGARD && !MALI_CSF_SUPPORT
 	default n
 	help
 	  Enable support for the arbiter interface in the driver.
@@ -107,6 +121,7 @@ config MALI_ARBITER_SUPPORT
 
 config MALI_DMA_BUF_MAP_ON_DEMAND
 	bool "Enable map imported dma-bufs on demand"
+	depends on MALI_MIDGARD
 	default n
 	help
 	  This option caused kbase to set up the GPU mapping of imported
@@ -117,6 +132,7 @@ config MALI_DMA_BUF_MAP_ON_DEMAND
 
 config MALI_DMA_BUF_LEGACY_COMPAT
 	bool "Enable legacy compatibility cache flush on dma-buf map"
+	depends on MALI_MIDGARD && !MALI_DMA_BUF_MAP_ON_DEMAND
 	default n
 	help
 	  This option enables compatibility with legacy dma-buf mapping
@@ -129,7 +145,10 @@ config MALI_DMA_BUF_LEGACY_COMPAT
 	  UK 11.18 or older. For later UK versions it is not possible.
 
 menuconfig MALI_EXPERT
+	depends on MALI_MIDGARD
 	bool "Enable Expert Settings"
+	default y if SOC_EXYNOS2100
+	default y if SOC_EXYNOS9830
 	default y
 	help
 	  Enabling this option and modifying the default settings may produce
@@ -139,6 +158,7 @@ if MALI_EXPERT
 
 config MALI_2MB_ALLOC
 	bool "Attempt to allocate 2MB pages"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Rather than allocating all GPU memory page-by-page, attempt to
@@ -149,6 +169,7 @@ config MALI_2MB_ALLOC
 
 config MALI_MEMORY_FULLY_BACKED
 	bool "Enable memory fully physically-backed"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  This option enables full physical backing of all virtual
@@ -158,6 +179,7 @@ config MALI_MEMORY_FULLY_BACKED
 
 config MALI_CORESTACK
 	bool "Enable support of GPU core stack power control"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Enabling this feature on supported GPUs will let the driver powering
@@ -169,9 +191,11 @@ config MALI_CORESTACK
 	  If unsure, say N.
 
 comment "Platform options"
+	depends on MALI_MIDGARD && MALI_EXPERT
 
 config MALI_NO_MALI
 	bool "Enable No Mali"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  This can be used to test the driver in a simulated environment
@@ -183,40 +207,46 @@ config MALI_NO_MALI
 
 config MALI_ERROR_INJECT
 	bool "Enable No Mali error injection"
+	depends on MALI_MIDGARD && MALI_EXPERT && MALI_NO_MALI
 	default n
 	help
 	  Enables insertion of errors to test module failure and recovery mechanisms.
 
 config MALI_GEM5_BUILD
 	bool "Enable build of Mali kernel driver for GEM5"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  This option is to do a Mali GEM5 build.
 	  If unsure, say N.
 
 comment "Debug options"
+	depends on MALI_MIDGARD && MALI_EXPERT
 
 config MALI_FW_CORE_DUMP
-	bool "Enable support for FW core dump"
-	default n
-	help
-	  Adds ability to request firmware core dump
+        bool "Enable support for FW core dump"
+        depends on MALI_MIDGARD && MALI_EXPERT && MALI_CSF_SUPPORT
+        default n
+        help
+          Adds ability to request firmware core dump
 
-	  Example:
-	  * To explicitly request core dump:
-	        echo 1 >/sys/kernel/debug/mali0/fw_core_dump
-	  * To output current core dump (after explicitly requesting a core dump,
-	    or kernel driver reported an internal firmware error):
-	        cat /sys/kernel/debug/mali0/fw_core_dump
+          Example:
+          * To explicitly request core dump:
+                echo 1 >/sys/kernel/debug/mali0/fw_core_dump
+          * To output current core dump (after explicitly requesting a core dump,
+            or kernel driver reported an internal firmware error):
+                cat /sys/kernel/debug/mali0/fw_core_dump
 
 config MALI_DEBUG
 	bool "Enable debug build"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Select this option for increased checking and reporting of errors.
 
 config MALI_FENCE_DEBUG
 	bool "Enable debug sync fence usage"
+	depends on MALI_MIDGARD && MALI_EXPERT && (SYNC || SYNC_FILE)
 	default y if MALI_DEBUG
 	help
 	  Select this option to enable additional checking and reporting on the
@@ -233,6 +263,7 @@ config MALI_FENCE_DEBUG
 
 config MALI_SYSTEM_TRACE
 	bool "Enable system event tracing support"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default y if MALI_DEBUG
 	default n
 	help
@@ -242,15 +273,21 @@ config MALI_SYSTEM_TRACE
 	  you are doing.
 
 comment "Instrumentation options"
+	depends on MALI_MIDGARD && MALI_EXPERT
 
+# MALI_SEC_INTEGRATION: Don't set MALI_PRFCNT_SET_ options as choice
+# If it's set as a choice, it can cause problems during 9810 build which contains
+# older Mali kbase code which contains the same option name as these.
 config MALI_PRFCNT_SET_PRIMARY
 	bool "Primary"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default y
 	help
 	  Select this option to use primary set of performance counters.
 
 config MALI_PRFCNT_SET_SECONDARY
 	bool "Secondary"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Select this option to use secondary set of performance counters. Kernel
@@ -263,6 +300,7 @@ config MALI_PRFCNT_SET_SECONDARY
 
 config MALI_PRFCNT_SET_TERTIARY
 	bool "Tertiary"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Select this option to use tertiary set of performance counters. Kernel
@@ -275,6 +313,7 @@ config MALI_PRFCNT_SET_TERTIARY
 
 config MALI_PRFCNT_SET_SELECT_VIA_DEBUG_FS
 	bool "Enable runtime selection of performance counters set via debugfs"
+	depends on MALI_MIDGARD && MALI_EXPERT && DEBUG_FS
 	default n
 	help
 	  Select this option to make the secondary set of performance counters
@@ -297,6 +336,7 @@ config MALI_PRFCNT_SET_SELECT_VIA_DEBUG_FS
 
 config MALI_JOB_DUMP
 	bool "Enable system level support needed for job dumping"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  Choose this option to enable system level support needed for
@@ -305,9 +345,11 @@ config MALI_JOB_DUMP
 	  you are doing.
 
 comment "Workarounds"
+	depends on MALI_MIDGARD && MALI_EXPERT
 
 config MALI_PWRSOFT_765
 	bool "Enable workaround for PWRSOFT-765"
+	depends on MALI_MIDGARD && MALI_EXPERT
 	default n
 	help
 	  PWRSOFT-765 fixes devfreq cooling devices issues. The fix was merged
@@ -319,6 +361,9 @@ config MALI_PWRSOFT_765
 
 config MALI_HW_ERRATA_1485982_NOT_AFFECTED
 	bool "Disable workaround for BASE_HW_ISSUE_GPU2017_1336"
+	depends on MALI_MIDGARD && MALI_EXPERT
+	default y if SOC_EXYNOS2100
+	default y if SOC_EXYNOS9830
 	default y
 	help
 	  This option disables the default workaround for GPU2017-1336. The
@@ -330,6 +375,7 @@ config MALI_HW_ERRATA_1485982_NOT_AFFECTED
 
 config MALI_HW_ERRATA_1485982_USE_CLOCK_ALTERNATIVE
 	bool "Use alternative workaround for BASE_HW_ISSUE_GPU2017_1336"
+	depends on MALI_MIDGARD && MALI_EXPERT && !MALI_HW_ERRATA_1485982_NOT_AFFECTED
 	default n
 	help
 	  This option uses an alternative workaround for GPU2017-1336. Lowering
@@ -341,7 +387,8 @@ config MALI_HW_ERRATA_1485982_USE_CLOCK_ALTERNATIVE
 endif
 
 config MALI_ARBITRATION
-	bool "Enable Virtualization reference code"
+	tristate "Enable Virtualization reference code"
+	depends on MALI_MIDGARD
 	default n
 	help
 	  Enables the build of several reference modules used in the reference
@@ -351,5 +398,7 @@ config MALI_ARBITRATION
 if MALI_ARBITRATION
 # source "drivers/gpu/arm/midgard/arbitration/Kconfig"
 endif
+
+# source "drivers/gpu/arm/midgard/tests/Kconfig"
 
 endif
