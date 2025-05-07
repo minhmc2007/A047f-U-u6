@@ -1203,7 +1203,7 @@ CONFIG_NF_DEFRAG_IPV6=y
 # CONFIG_ATM is not set
 CONFIG_L2TP=y
 # CONFIG_L2TP_V3 is not set
-# CONFIG_BRIDGE is not set
+
 CONFIG_HAVE_NET_DSA=y
 # CONFIG_NET_DSA is not set
 # CONFIG_VLAN_8021Q is not set
