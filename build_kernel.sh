@@ -31,7 +31,7 @@ set -e
 # --- Kernel Configuration ---
 echo -e "${YELLOW}Starting kernel configuration...${NC}"
 echo -e "${BLUE}Running: make ARCH=${ARCH} blue_nethunter_minhmc2007_defconfig${NC}"
-make ARCH=${ARCH} blue_nethunter_minhmc2007_defconfig
+make ARCH=${ARCH} blue_nethunter_minhmc2007_defconfig dtbs
 
 # Check if the previous command was successful
 if [ $? -eq 0 ]; then
