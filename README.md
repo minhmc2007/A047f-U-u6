@@ -28,7 +28,7 @@ Welcome to the Blue Nethunter Kernel project! This custom kernel is specifically
 
 **Steps:**
 
-1.  **Download the Kernel:** Obtain the latest `boot.tar` file for the Blue Nethunter Kernel from the [release page/link to your releases].
+1.  **Download the Kernel:** Obtain the latest `boot.tar` file for the Blue Nethunter Kernel from the release.
 2.  **Enter Download Mode:**
     * Power off your Samsung Galaxy A04s.
     * Press and hold the **Volume Up + Volume Down** buttons simultaneously while connecting your phone to your PC via USB.
