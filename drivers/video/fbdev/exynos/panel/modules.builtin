@@ -1,0 +1,9 @@
+kernel/drivers/video/fbdev/exynos/panel/sysfs.ko
+kernel/drivers/video/fbdev/exynos/panel/panel_notify.ko
+kernel/drivers/video/fbdev/exynos/panel/panel_i2c.ko
+kernel/drivers/video/fbdev/exynos/panel/td4160_boe/td4160_boe.ko
+kernel/drivers/video/fbdev/exynos/panel/nt36525c_sharp/nt36525c_sharp.ko
+kernel/drivers/video/fbdev/exynos/panel/nt36525c_sharp_ve/nt36525c_sharp_ve.ko
+kernel/drivers/video/fbdev/exynos/panel/td4162_boe/td4162_boe.ko
+kernel/drivers/video/fbdev/exynos/panel/nt36525c_tianma/nt36525c_tianma.ko
+kernel/drivers/video/fbdev/exynos/panel/nt36525c_dtc/nt36525c_dtc.ko

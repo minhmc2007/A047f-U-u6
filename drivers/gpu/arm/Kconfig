@@ -1,4 +1,3 @@
-#
 # (C) COPYRIGHT 2012 ARM Limited. All rights reserved.
 #
 # This program is free software and is provided to you under the terms of the GNU General Public License version 2
@@ -7,47 +6,63 @@
 # A copy of the licence is included with the program, and can also be obtained from Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
-#
+
+# --- START OF NEW HELPER CONFIGS ---
+# These will be set by the build system based on PLATFORM_VERSION
+config GPU_PLATFORM_VERSION_LE_12
+    bool
+    # This option is not meant for direct user configuration.
+    # It will be set based on the PLATFORM_VERSION environment variable
+    # by the build scripts. If PLATFORM_VERSION <= 12, this will be 'y'.
+
+config GPU_PLATFORM_VERSION_GE_13
+    bool
+    # This option is not meant for direct user configuration.
+    # It will be set based on the PLATFORM_VERSION environment variable
+    # by the build scripts. If PLATFORM_VERSION >= 13, this will be 'y'.
+# --- END OF NEW HELPER CONFIGS ---
 
 
 menu "ARM GPU Configuration"
 
 menuconfig MALI_DDK_VERSION
-	tristate "Mali support"
-	default y
-	help
-	  Enable this option to build support for the ARM Mali-T7xx GPU.
+    tristate "Mali support"
+    default y
+    help
+      Enable this option to build support for the ARM Mali-T7xx GPU.
 
-	  To compile this driver as a module, choose M here:
-	  this will generate a single module, called mali_kbase.
+      To compile this driver as a module, choose M here:
+      this will generate a single module, called mali_kbase.
 
 choice
-	prompt "version Configuration"
-	depends on MALI_DDK_VERSION
-	default MALI_BIFROST_R32P1 if $(PLATFORM_VERSION) <= 12
-	default MALI_BIFROST_R38P1 if $(PLATFORM_VERSION) >= 13
-	help
-	  Select the gpu support version.
+    prompt "version Configuration"
+    depends on MALI_DDK_VERSION
+    # --- MODIFIED DEFAULTS ---
+    default MALI_BIFROST_R32P1 if GPU_PLATFORM_VERSION_LE_12
+    default MALI_BIFROST_R38P1 if GPU_PLATFORM_VERSION_GE_13
+    # --- END OF MODIFIED DEFAULTS ---
+    help
+      Select the gpu support version.
 
 config MALI_BIFROST_R19P0
-	depends on MALI_DDK_VERSION
-	bool "Bifrost r19p0 driver"
+    depends on MALI_DDK_VERSION
+    bool "Bifrost r19p0 driver"
 
 config MALI_BIFROST_R25P1
-	depends on MALI_DDK_VERSION
-	bool "Bifrost r25p1 driver"
+    depends on MALI_DDK_VERSION
+    bool "Bifrost r25p1 driver"
 
 config MALI_BIFROST_R26P0
-	depends on MALI_DDK_VERSION
-	bool "Bifrost r26p0 driver"
+    depends on MALI_DDK_VERSION
+    bool "Bifrost r26p0 driver"
 
 config MALI_BIFROST_R32P1
-	depends on MALI_DDK_VERSION
-	bool "Bifrost r32p1 driver"
+    depends on MALI_DDK_VERSION
+    bool "Bifrost r32p1 driver"
 
 config MALI_BIFROST_R38P1
-	depends on MALI_DDK_VERSION
-	bool "Bifrost r38p1 driver"
+    depends on MALI_DDK_VERSION
+    bool "Bifrost r38p1 driver"
 
 endchoice
 
