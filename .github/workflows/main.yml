@@ -1,49 +1,20 @@
-name: Build Android Kernel Matrix
+name: Build Android Kernel
 
 on:
   push:
-    branches: [ '*' ]  # Run on all branches
+    branches: [ main ]
   pull_request:
-    branches: [ '*' ]  # Run on PRs to all branches
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  # Job to get all branches dynamically
-  get-branches:
-    runs-on: ubuntu-latest
-    outputs:
-      branches: ${{ steps.branches.outputs.branches }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all branches
-      
-      - name: Get All Branches
-        id: branches
-        run: |
-          # Get all remote branches, exclude HEAD and format as JSON array
-          branches=$(git branch -r | grep -v HEAD | sed 's/origin\///' | sed 's/^[[:space:]]*//' | jq -R -s -c 'split("\n")[:-1]')
-          echo "branches=$branches" >> $GITHUB_OUTPUT
-          echo "Found branches: $branches"
-
   build:
-    needs: get-branches
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false  # Continue building other branches even if one fails
-      matrix:
-        branch: ${{ fromJson(needs.get-branches.outputs.branches) }}
-        arch: [arm64, arm]  # You can add more architectures if needed
-        compiler: [clang, gcc]  # You can specify different compilers
-    
+
     steps:
-      # Checkout the specific branch
+      # Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.branch }}
-          fetch-depth: 1
 
       # Install dependencies required for Android kernel compilation
       - name: Install Dependencies
@@ -75,32 +46,13 @@ jobs:
             xz-utils \
             zlib1g-dev \
             libarchive-tools \
-            zstd \
-            gcc-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabihf
-
-      # Set up environment variables based on matrix
+            zstd
+      # Set up environment variables
       - name: Setup Build Environment
         run: |
-          echo "ARCH=${{ matrix.arch }}" >> $GITHUB_ENV
-          
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
-            echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
-          elif [ "${{ matrix.arch }}" = "arm" ]; then
-            echo "CROSS_COMPILE=arm-linux-gnueabihf-" >> $GITHUB_ENV
-          fi
-          
-          if [ "${{ matrix.compiler }}" = "clang" ]; then
-            echo "CC=clang" >> $GITHUB_ENV
-          else
-            echo "CC=gcc" >> $GITHUB_ENV
-          fi
-          
-          echo "Building for:"
-          echo "Branch: ${{ matrix.branch }}"
-          echo "Architecture: ${{ matrix.arch }}"
-          echo "Compiler: ${{ matrix.compiler }}"
-
+          echo "ARCH=arm64" >> $GITHUB_ENV
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "CC=clang" >> $GITHUB_ENV
       # Run the build_kernel.sh script
       - name: Build Kernel
         run: |
@@ -109,62 +61,16 @@ jobs:
             bash ./build_kernel.sh
           else
             echo "Error: build_kernel.sh not found in the repository root"
-            echo "Attempting default kernel build..."
-            
-            # Default build process if build_kernel.sh doesn't exist
-            if [ -f "Makefile" ]; then
-              make defconfig || make ${{ matrix.arch }}_defconfig || echo "No default config found"
-              make -j$(nproc) 2>&1 | tee build.log
-            else
-              echo "No Makefile found, skipping build for this branch"
-              exit 1
-            fi
+            exit 1
           fi
-
-      # Create build info file
-      - name: Create Build Info
-        run: |
-          echo "Branch: ${{ matrix.branch }}" > build_info.txt
-          echo "Architecture: ${{ matrix.arch }}" >> build_info.txt
-          echo "Compiler: ${{ matrix.compiler }}" >> build_info.txt
-          echo "Build Date: $(date)" >> build_info.txt
-          echo "Commit: $(git rev-parse HEAD)" >> build_info.txt
-          echo "Commit Message: $(git log -1 --pretty=%B)" >> build_info.txt
-
-      # Upload build artifacts for each matrix combination
+      # Upload build artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-build-${{ matrix.branch }}-${{ matrix.arch }}-${{ matrix.compiler }}
+          name: kernel-build
           path: |
-            arch/${{ matrix.arch }}/boot/Image*
-            arch/${{ matrix.arch }}/boot/zImage*
-            arch/${{ matrix.arch }}/boot/uImage*
-            arch/${{ matrix.arch }}/boot/dts/**/*.dtb
+            arch/arm64/boot/Image.gz
+            arch/arm64/boot/Image.gz-dtb
             **/*.ko
             *.zip
-            *.tar.gz
-            build_info.txt
-            build.log
           if-no-files-found: warn
-          retention-days: 30
-
-  # Summary job that runs after all builds complete
-  build-summary:
-    needs: [get-branches, build]
-    runs-on: ubuntu-latest
-    if: always()  # Run even if some builds failed
-    steps:
-      - name: Build Summary
-        run: |
-          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Built kernel for the following configurations:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # This will show the matrix combinations that were attempted
-          echo "| Branch | Architecture | Compiler | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------------|----------|--------|" >> $GITHUB_STEP_SUMMARY
-          
-          # Note: In a real scenario, you'd need to collect the actual build results
-          # This is a placeholder for demonstration
-          echo "Check the individual job results for detailed build status." >> $GITHUB_STEP_SUMMARY
