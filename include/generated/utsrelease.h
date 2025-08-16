@@ -1,1 +1,0 @@
-#define UTS_RELEASE "4.19.198blue-nethunter-g090e4f5a2e42-dirty"
